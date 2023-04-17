@@ -23,7 +23,7 @@
                             <Label Content="Nombre de la aplicación:"/>
                             <TextBox Name="AppNameTextBox" />
                             <Label Content="Descripción:"/>
-                            <TextBox Name="AppDescriptionTextBox" Text="{Binding AppDescription}" TextWrapping="Wrap" AcceptsReturn="True" Height="100"/>
+                            <TextBox Name="AppDescriptionTextBox" Text="{Binding AppDescription}" TextWrapping="Wrap" AcceptsReturn="True" Height="100" FontSize="15" FontWeight="Bold"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Vertical" Margin="10,0,0,0">
                             <Button Content="AppRequest" Name="Button1" Command="{Binding Button1Command}" Margin="0,0,0,5"/>
@@ -39,7 +39,7 @@
                             <ColumnDefinition Width="3*"/>
                         </Grid.ColumnDefinitions>
 
-                        <ListView Grid.Column="0" Name="TaskListView" ItemsSource="{Binding TaskList}">
+                        <ListView Grid.Column="0" Name="TaskListView" ItemsSource="{Binding TaskList}" FontSize="15" FontWeight="Bold">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Header="Tarea" DisplayMemberBinding="{Binding TaskName}"/>

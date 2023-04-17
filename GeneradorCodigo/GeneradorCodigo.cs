@@ -13,8 +13,6 @@ namespace ProblemSolver.GeneradorCodigo
         public GeneradorCodigo(OpenAIAPI api)
         {
             _api = api;
-            PromptSystemCodigo = File.ReadAllText("C:\\Users\\pvega\\source\\repos\\ProblemSolver\\GeneradorCodigo\\promptsystemcodigo.txt");
-            PromptSystemTests = File.ReadAllText("C:\\Users\\pvega\\source\\repos\\ProblemSolver\\GeneradorCodigo\\promptsystemtests.txt");
         }
 
         public async Task<string> GenerarCodigoFuncionAsync(string problema)

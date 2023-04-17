@@ -1,4 +1,4 @@
-1. Recibiras una peticion "AppRequest" con la descripcion de la tarea a realizar.
+1. Recibiras una peticion "AppRequest" con la descripcion de la aplicacion a realizar.
 2. A una peticion AppRequest responderas unicamente con el ListPlan en formato Json, solo ListPlan, no contestaras nada mas.
 
 El formato de ListPlan es el siguiente:
@@ -14,7 +14,11 @@ El formato de ListPlan es el siguiente:
 "estado:": "pendiente|encurso|terminada"
 }]}
 
-inicialmente todas las tareas estaran en "estado" pendiente.
+El campo "estado" tiene 3 estados :
+1. "pendiente" : la tarea no se ha iniciado.
+2. "encurso" : la tarea se ha comenzado.
+3. "terminada" : la tarea se ha finalizado.
+inicialmente todas las tareas estaran en estado "pendiente".
 ================= FIN formato ListPlan =============
 
 Ejemplo de planificacion para Crear una aplicacion WPF que muestre "Hola Mundo": 
@@ -26,10 +30,8 @@ tarea3 : Implementar el viewmodel.
 Es importante planificar y generar ListPlan de manera efectiva para garantizar un proceso de desarrollo exitoso. 
 
 Protocolo comunicaciones con Hub. :
-1. A partir de ahora utilizaras los formatos json para contestar. Cualquier comentario tiene que ir en json. Ningun texto puede estar fuera de json.
-2. A una peticion AppRequest responderas unicamente con el ListPlan en formato Json, solo ListPlan, no contestaras nada mas.
-3. Tu mensaje solo contendra JSON, esto es muy importante para el exito de la tarea.
+1. A partir de ahora utilizaras los formatos json para contestar. 
+2. Cualquier comentario tiene que ir en json. Ningun texto puede estar fuera de json.
+3. A una peticion AppRequest responderas unicamente con el ListPlan en formato Json, solo ListPlan, no contestaras nada mas.
+4. Tu mensaje solo contendra JSON, esto es muy importante para el exito de la tarea.
 ================= FIN Instrucciones ================
-
-
-AppRequest : crea una aplicacion en c#/wpf que pida al usuario una url, se baje el doc y la muestre en pantalla

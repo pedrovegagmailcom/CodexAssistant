@@ -1,12 +1,15 @@
 ﻿using CodexAssistant.JSon;
 using CodexAssistant.Modelo;
+using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using OpenAI_API;
 using Prism.Commands;
 using Prism.Mvvm;
 using ProblemSolver.GeneradorCodigo;
+using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -15,7 +18,7 @@ namespace CodexAssistant.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {
-        private OpenAIAPI openAIAPI = new OpenAIAPI("");
+        private OpenAIAPI openAIAPI = new OpenAIAPI(Secrets.OpenAIKey);
 
         private string _title = "Prism Application";
         public string Title
@@ -36,6 +39,7 @@ namespace CodexAssistant.ViewModels
         private string _promptTaskRequest;
 
         private ObservableCollection<string> _logEntries;
+       
         public ObservableCollection<string> LogEntries
         {
             get { return _logEntries; }
@@ -51,13 +55,17 @@ namespace CodexAssistant.ViewModels
             Button4Command = new DelegateCommand(Button4Execute);
             LogEntries = new ObservableCollection<string>();
             LogEntries.CollectionChanged += LogEntries_CollectionChanged;
-
-            string rutaPromptAppRequest = "C:\\Users\\pvega\\source\\repos\\CodexAssistant\\Prompts\\Prompt AppRequest.txt";
-            string rutaPromptTaskRequest = "C:\\Users\\pvega\\source\\repos\\CodexAssistant\\Prompts\\Prompt TaskRequest.txt";
-            _promptAppRequest = File.ReadAllText(rutaPromptAppRequest);
-            _promptTaskRequest = File.ReadAllText(rutaPromptTaskRequest);
+            CargarPrompts();
 
             comChatGPT = new GeneradorCodigo(openAIAPI);
+        }
+
+        private void CargarPrompts()
+        {
+            string carpetaSalidaProyecto = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            _promptAppRequest = File.ReadAllText(carpetaSalidaProyecto + "\\Prompts\\Prompt AppRequest.txt");
+            _promptTaskRequest = File.ReadAllText(carpetaSalidaProyecto + "\\Prompts\\Prompt TaskRequest.txt");
+        
         }
 
         public string AppName
