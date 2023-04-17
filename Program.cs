@@ -42,7 +42,7 @@ class Program
 
     public void Main()
     {
-        OpenAIAPI openAIAPI = new OpenAIAPI("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");
+        OpenAIAPI openAIAPI = new OpenAIAPI("");
         var api = openAIAPI;
 
         

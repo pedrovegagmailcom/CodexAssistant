@@ -15,7 +15,7 @@ namespace CodexAssistant.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {
-        private OpenAIAPI openAIAPI = new OpenAIAPI("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");
+        private OpenAIAPI openAIAPI = new OpenAIAPI("");
 
         private string _title = "Prism Application";
         public string Title
