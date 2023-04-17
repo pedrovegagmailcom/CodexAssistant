@@ -1,0 +1,70 @@
+﻿<Window x:Class="CodexAssistant.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:prism="http://prismlibrary.com/"
+        prism:ViewModelLocator.AutoWireViewModel="True"
+        Title="{Binding Title}" Height="850" Width="1525" >
+    <Grid>
+        <TabControl>
+            <TabItem Header="Principal">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Orientation="Vertical">
+                            <Label Content="Nombre de la aplicación:"/>
+                            <TextBox Name="AppNameTextBox" />
+                            <Label Content="Descripción:"/>
+                            <TextBox Name="AppDescriptionTextBox" Text="{Binding AppDescription}" TextWrapping="Wrap" AcceptsReturn="True" Height="100"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Vertical" Margin="10,0,0,0">
+                            <Button Content="AppRequest" Name="Button1" Command="{Binding Button1Command}" Margin="0,0,0,5"/>
+                            <Button Content="Botón 2" Name="Button2" Margin="0,0,0,5"/>
+                            <Button Content="Botón 3" Name="Button3" Margin="0,0,0,5"/>
+                            <Button Content="Botón 4" Name="Button4"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="7*"/>
+                            <ColumnDefinition Width="3*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ListView Grid.Column="0" Name="TaskListView" ItemsSource="{Binding TaskList}">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Header="Tarea" DisplayMemberBinding="{Binding TaskName}"/>
+                                    <GridViewColumn Header="Comentarios" DisplayMemberBinding="{Binding Comments}"/>
+                                    <GridViewColumn Header="Estado" DisplayMemberBinding="{Binding Status}"/>
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+
+                        <RichTextBox Grid.Column="1" Name="LogRichTextBox" IsReadOnly="True" VerticalScrollBarVisibility="Auto"  Background="LightGray" />
+                    </Grid>
+
+                    <!-- Puedes agregar más elementos aquí si es necesario. -->
+
+                </Grid>
+            </TabItem>
+            <TabItem Header="Debug">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBox Grid.Row="0" Name="DebugTextBox" IsReadOnly="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" AcceptsReturn="True" />
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
