@@ -1,6 +1,7 @@
-﻿using CodexAssistant.JSon;
+﻿using CodexAssistant.Compilacion;
+using CodexAssistant.Interfaces;
+using CodexAssistant.JSon;
 using CodexAssistant.Modelo;
-using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using OpenAI_API;
 using Prism.Commands;
@@ -9,6 +10,7 @@ using ProblemSolver.GeneradorCodigo;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Controls;
@@ -46,28 +48,6 @@ namespace CodexAssistant.ViewModels
             set { SetProperty(ref _logEntries, value); }
         }
 
-        public MainWindowViewModel()
-        {
-            TaskList = new ObservableCollection<TaskItem>();
-            Button1Command = new DelegateCommand(ButtonAppRequest);
-            Button2Command = new DelegateCommand(Button2Execute);
-            Button3Command = new DelegateCommand(Button3Execute);
-            Button4Command = new DelegateCommand(Button4Execute);
-            LogEntries = new ObservableCollection<string>();
-            LogEntries.CollectionChanged += LogEntries_CollectionChanged;
-            CargarPrompts();
-
-            comChatGPT = new GeneradorCodigo(openAIAPI);
-        }
-
-        private void CargarPrompts()
-        {
-            string carpetaSalidaProyecto = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            _promptAppRequest = File.ReadAllText(carpetaSalidaProyecto + "\\Prompts\\Prompt AppRequest.txt");
-            _promptTaskRequest = File.ReadAllText(carpetaSalidaProyecto + "\\Prompts\\Prompt TaskRequest.txt");
-        
-        }
-
         public string AppName
         {
             get => _appName;
@@ -86,6 +66,17 @@ namespace CodexAssistant.ViewModels
             set => SetProperty(ref _taskList, value);
         }
 
+        private TaskItem _selectedTaskItem;
+        public TaskItem SelectedTaskItem
+        {
+            get { return _selectedTaskItem; }
+            set
+            {
+                _selectedTaskItem = value;
+                RaisePropertyChanged("SelectedTask");
+            }
+        }
+
         public string LogText
         {
             get => _logText;
@@ -102,12 +93,39 @@ namespace CodexAssistant.ViewModels
         public DelegateCommand Button2Command { get; }
         public DelegateCommand Button3Command { get; }
         public DelegateCommand Button4Command { get; }
+        public MainWindowViewModel()
+        {
+            TaskList = new ObservableCollection<TaskItem>();
+            Button1Command = new DelegateCommand(ButtonAppRequest);
+            Button2Command = new DelegateCommand(ButtonTaskRequest);
+            Button3Command = new DelegateCommand(Button3Execute);
+            Button4Command = new DelegateCommand(Button4Execute);
+            LogEntries = new ObservableCollection<string>();
+            LogEntries.CollectionChanged += LogEntries_CollectionChanged;
+            CargarPrompts();
+
+            comChatGPT = new GeneradorCodigo(openAIAPI);
+        }
+
+        private void CargarPrompts()
+        {
+            string carpetaSalidaProyecto = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            _promptAppRequest = File.ReadAllText(carpetaSalidaProyecto + "\\Prompts\\Prompt AppRequest.txt");
+            _promptTaskRequest = File.ReadAllText(carpetaSalidaProyecto + "\\Prompts\\Prompt TaskRequest.txt");
+        
+        }
+
+        
 
         private async void ButtonAppRequest()
         {
             TaskList = await SolicitarListaTareas();
         }
 
+        private async void ButtonTaskRequest()
+        {
+            await EjecutarCicloTarea();
+        }
 
         public class TaskListaAux
         {
@@ -128,9 +146,55 @@ namespace CodexAssistant.ViewModels
             return listaTareas;
         }
 
-        private void Button2Execute()
+        enum Estado
         {
-            // Implementar la lógica para el botón 2 aquí
+            MandarTarea,
+            Finalizar
+        }
+
+        public async Task EjecutarCicloTarea()
+        {
+            IOutputHandler outputHandler = new OutputHandler();
+            IProjectCreator _projectCreator = new ProjectCreator(outputHandler);
+
+
+            //string parentDirectory = @"C:\Users\pvega\pruebasNet";
+            //_projectCreator.Create(AppName, parentDirectory);
+            //string mainProjectPath = Path.Combine(parentDirectory, appName, $"{appName}.csproj");
+
+
+            BuildResult buildResult = new BuildResult((true, "", ""));
+            Estado estadoActual = Estado.MandarTarea;
+
+            bool compilacionExitosa = false;
+            Mensaje msg = new Mensaje();
+
+
+            while (estadoActual != Estado.Finalizar)
+            {
+                switch (estadoActual)
+                {
+                    case Estado.MandarTarea:
+                        var result = await MandarTarea(SelectedTaskItem);
+                        
+                        break;
+
+
+                }
+            }
+
+            Console.WriteLine("¡La función y los tests se ejecutaron correctamente!");
+        }
+
+        private async Task<string> MandarTarea(TaskItem selectedTaskItem)
+        {
+            string jsonTarea = JsonConvert.SerializeObject(selectedTaskItem);
+            var conversation = openAIAPI.Chat.CreateConversation();
+            conversation.AppendSystemMessage(_promptTaskRequest);
+            conversation.AppendSystemMessage(AppDescription);
+            conversation.AppendUserInput("TaskRequest:" + jsonTarea);
+            string respuesta = await conversation.GetResponseFromChatbotAsync();
+            return respuesta;
         }
 
         private void Button3Execute()

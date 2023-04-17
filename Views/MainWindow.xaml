@@ -21,13 +21,13 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Orientation="Vertical">
                             <Label Content="Nombre de la aplicación:"/>
-                            <TextBox Name="AppNameTextBox" />
+                            <TextBox Name="AppNameTextBox" Text="{Binding AppName}"/>
                             <Label Content="Descripción:"/>
                             <TextBox Name="AppDescriptionTextBox" Text="{Binding AppDescription}" TextWrapping="Wrap" AcceptsReturn="True" Height="100" FontSize="15" FontWeight="Bold"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Vertical" Margin="10,0,0,0">
                             <Button Content="AppRequest" Name="Button1" Command="{Binding Button1Command}" Margin="0,0,0,5"/>
-                            <Button Content="Botón 2" Name="Button2" Margin="0,0,0,5"/>
+                            <Button Content="TaskRequest" Name="Button2" Command="{Binding Button2Command}" Margin="0,0,0,5"/>
                             <Button Content="Botón 3" Name="Button3" Margin="0,0,0,5"/>
                             <Button Content="Botón 4" Name="Button4"/>
                         </StackPanel>
@@ -39,7 +39,8 @@
                             <ColumnDefinition Width="3*"/>
                         </Grid.ColumnDefinitions>
 
-                        <ListView Grid.Column="0" Name="TaskListView" ItemsSource="{Binding TaskList}" FontSize="15" FontWeight="Bold">
+                        <ListView Grid.Column="0" Name="TaskListView" ItemsSource="{Binding TaskList}" FontSize="15" FontWeight="Bold"
+                                  SelectedItem="{Binding SelectedTaskItem, Mode=TwoWay}">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Header="Tarea" DisplayMemberBinding="{Binding TaskName}"/>
