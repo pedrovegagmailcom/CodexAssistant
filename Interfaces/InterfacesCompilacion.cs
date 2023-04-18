@@ -4,7 +4,7 @@ namespace CodexAssistant.Interfaces
 {
     public interface IProjectCreator
     {
-        void Create(string appName, string parentDirectory);
+        bool Create(string appName, string parentDirectory, string tipo);
     }
 
     public interface IProjectBuilder
@@ -20,6 +20,6 @@ namespace CodexAssistant.Interfaces
 
     public interface ITestProjectCreator
     {
-        void CreateTestProject(string testProjectName, string parentDirectory, string mainProjectPath);
+        void Create(string testProjectName, string parentDirectory, string mainProjectPath);
     }
 }

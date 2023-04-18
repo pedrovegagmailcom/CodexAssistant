@@ -226,9 +226,9 @@ class CicloProceso
         Console.WriteLine(problema + "\n");
 
         Console.ForegroundColor = ConsoleColor.DarkGray;
-        _projectCreator.Create(appName, parentDirectory);
+        _projectCreator.Create(appName, parentDirectory, "console");
         string mainProjectPath = Path.Combine(parentDirectory, appName, $"{appName}.csproj");
-        _testProjectCreator.CreateTestProject(testProjectName, parentDirectory, mainProjectPath);
+        _testProjectCreator.Create(testProjectName, parentDirectory, mainProjectPath);
 
         BuildResult buildResult = new BuildResult((true, "", ""));
         Estado estadoActual = Estado.GenerarFuncion;

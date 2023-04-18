@@ -6,7 +6,12 @@ using System.Text;
 
 namespace CodexAssistant.Compilacion
 {
-    
+    public enum TiposProyecto
+    {
+        console,
+        wpf,
+        winforms
+    }
 
     public class OutputHandler : IOutputHandler
     {
@@ -30,12 +35,12 @@ namespace CodexAssistant.Compilacion
             _outputHandler = outputHandler;
         }
 
-        public void Create(string appName, string parentDirectory)
+        public bool Create(string appName, string parentDirectory, string tipo)
         {
             ProcessStartInfo processStartInfo = new ProcessStartInfo
             {
                 FileName = "dotnet",
-                Arguments = $"new console -o {appName} --verbosity quiet",
+                Arguments = $"new {tipo} -o {appName} --verbosity quiet",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
@@ -43,11 +48,13 @@ namespace CodexAssistant.Compilacion
                 WorkingDirectory = parentDirectory
             };
 
-            ExecuteProcess(processStartInfo);
+            return ExecuteProcess(processStartInfo);
         }
 
-        private void ExecuteProcess(ProcessStartInfo processStartInfo)
+        private bool ExecuteProcess(ProcessStartInfo processStartInfo)
         {
+            bool isSuccess = false; // Variable para indicar el éxito o fracaso del proceso
+
             using (Process process = new Process { StartInfo = processStartInfo })
             {
                 process.OutputDataReceived += _outputHandler.HandleOutput;
@@ -57,8 +64,17 @@ namespace CodexAssistant.Compilacion
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
                 process.WaitForExit();
+
+                // Comprobar si el proceso finalizó correctamente
+                if (process.ExitCode == 0)
+                {
+                    isSuccess = true;
+                }
             }
+
+            return isSuccess;
         }
+
     }
 
     public class ProjectBuilder : IProjectBuilder
@@ -128,7 +144,7 @@ namespace CodexAssistant.Compilacion
             _outputHandler = outputHandler;
         }
 
-        public void CreateTestProject(string testProjectName, string parentDirectory, string mainProjectPath)
+        public void Create(string testProjectName, string parentDirectory, string mainProjectPath)
         {
             CreateNUnitTestProject(testProjectName, parentDirectory);
             AddReferenceToMainProject(testProjectName, mainProjectPath);

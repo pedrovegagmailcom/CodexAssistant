@@ -6,10 +6,28 @@ namespace CodexAssistant.JSon
 {
     public static class ParserJSon
     {
-        public static string ExtraerJSON(string textoCompleto)
+        public static string ExtraerJSONAppRequest(string textoCompleto)
         {
           
             string pattern = @"\{(?:[^{}]|(?<o>\{)|(?<-o>\}))+(?(o)(?!))\}";
+            Match match = Regex.Match(textoCompleto, pattern);
+
+            if (match.Success)
+            {
+                return match.Value;
+            }
+            else
+            {
+                throw new ArgumentException("No se encontró un JSON válido en la entrada proporcionada.");
+            }
+
+        }
+
+        public static string ExtraerJSONTaskRequest(string textoCompleto)
+        {
+
+            string pattern = @"\{(?:[^{}]|(?<o>\{)|(?<-o>\}))+(?(o)(?!))\}";
+
             Match match = Regex.Match(textoCompleto, pattern);
 
             if (match.Success)

@@ -2,6 +2,7 @@
 using CodexAssistant.Interfaces;
 using CodexAssistant.JSon;
 using CodexAssistant.Modelo;
+using CodexAssistant.Utilidades;
 using Newtonsoft.Json;
 using OpenAI_API;
 using Prism.Commands;
@@ -40,8 +41,13 @@ namespace CodexAssistant.ViewModels
         private string _promptAppRequest;
         private string _promptTaskRequest;
 
+        private IOutputHandler outputHandler;
+        private IProjectCreator _projectCreator;
+        private string parentDirectory = @"C:\Users\pvega\pruebasNet";
+
+        #region Propiedades Vista
         private ObservableCollection<string> _logEntries;
-       
+
         public ObservableCollection<string> LogEntries
         {
             get { return _logEntries; }
@@ -93,6 +99,9 @@ namespace CodexAssistant.ViewModels
         public DelegateCommand Button2Command { get; }
         public DelegateCommand Button3Command { get; }
         public DelegateCommand Button4Command { get; }
+        #endregion
+
+
         public MainWindowViewModel()
         {
             TaskList = new ObservableCollection<TaskItem>();
@@ -103,6 +112,9 @@ namespace CodexAssistant.ViewModels
             LogEntries = new ObservableCollection<string>();
             LogEntries.CollectionChanged += LogEntries_CollectionChanged;
             CargarPrompts();
+
+           outputHandler = new OutputHandler();
+            _projectCreator = new ProjectCreator(outputHandler);
 
             comChatGPT = new GeneradorCodigo(openAIAPI);
         }
@@ -138,7 +150,7 @@ namespace CodexAssistant.ViewModels
             conversation.AppendSystemMessage(_promptAppRequest);
             conversation.AppendUserInput("AppRequest:" + AppDescription);
             string jsonListaTareas = await conversation.GetResponseFromChatbotAsync();
-            jsonListaTareas = ParserJSon.ExtraerJSON(jsonListaTareas);
+            jsonListaTareas = ParserJSon.ExtraerJSONAppRequest(jsonListaTareas);
             TaskListaAux taskList = JsonConvert.DeserializeObject<TaskListaAux>(jsonListaTareas);
 
             ObservableCollection<TaskItem> listaTareas = taskList.ListPlan;
@@ -154,15 +166,7 @@ namespace CodexAssistant.ViewModels
 
         public async Task EjecutarCicloTarea()
         {
-            IOutputHandler outputHandler = new OutputHandler();
-            IProjectCreator _projectCreator = new ProjectCreator(outputHandler);
-
-
-            //string parentDirectory = @"C:\Users\pvega\pruebasNet";
-            //_projectCreator.Create(AppName, parentDirectory);
-            //string mainProjectPath = Path.Combine(parentDirectory, appName, $"{appName}.csproj");
-
-
+         
             BuildResult buildResult = new BuildResult((true, "", ""));
             Estado estadoActual = Estado.MandarTarea;
 
@@ -175,16 +179,126 @@ namespace CodexAssistant.ViewModels
                 switch (estadoActual)
                 {
                     case Estado.MandarTarea:
-                        var result = await MandarTarea(SelectedTaskItem);
-                        
+                        string result = await MandarTarea(SelectedTaskItem);
+                        result = ParserJSon.ExtraerJSONTaskRequest(await MandarTarea(SelectedTaskItem));
+                        var comando = JsonConvert.DeserializeObject<CommandData>(result);
+                        bool res = ExecComando(comando);
+                        if (res) {
+                            MandarContextoProjecto();
+                        }
                         break;
 
 
                 }
             }
 
-            Console.WriteLine("¡La función y los tests se ejecutaron correctamente!");
+            Console.WriteLine("FIN");
         }
+
+        private void MandarContextoProjecto()
+        {
+            var projectfiles = ProjectUtils.GetEditableFiles(parentDirectory + "\\" + AppName);
+
+
+        }
+
+        private bool ExecComando(CommandData comando)
+        {
+            Comandos command = ObtenerComando(comando);
+
+            switch (command)
+            {
+                case Comandos.CreateProject:
+
+                    return EjecutarCreateProject(comando.Arguments);
+
+                    break;
+                case Comandos.GetFile:
+                    
+                    return EjecutarGetFile();
+                    
+                    break;
+                case Comandos.UpdateFile:
+                    
+                    return EjecutarUpdateFile();
+                    
+                    break;
+                case Comandos.AddFile:
+                    
+                    return EjecutarAddFile();
+                    
+                    break;
+                case Comandos.GetContext:
+                    
+                    return EjecutarGetContext();
+                    
+                    break;
+                case Comandos.AddReference:
+                   
+                    return EjecutarAddReference();
+                    
+                    break;
+                default:
+                    throw new ArgumentException($"El comando '{comando}' no es válido.");
+            }
+        }
+
+
+        public bool EjecutarCreateProject(string tipo)
+        {
+            return _projectCreator.Create(AppName, parentDirectory, tipo);
+        }
+
+        public bool EjecutarGetFile()
+        {
+            return false;
+        }
+
+        public bool EjecutarUpdateFile()
+        {
+            return false;
+        }
+
+        public bool EjecutarAddFile()
+        {
+            return false;
+        }
+
+        public bool EjecutarGetContext()
+        {
+            return false;
+        }
+
+        public bool EjecutarAddReference()
+        {
+            return false;
+        }
+
+        public static Comandos ObtenerComando(CommandData commandData)
+        {
+            string comandoStr = commandData.Command.ToLower();
+
+            switch (comandoStr)
+            {
+                case "createproject":
+                    return Comandos.CreateProject;
+                case "getfile":
+                    return Comandos.GetFile;
+                case "updatefile":
+                    return Comandos.UpdateFile;
+                case "addfile":
+                    return Comandos.AddFile;
+                case "getcontext":
+                    return Comandos.GetContext;
+                case "addreference":
+                    return Comandos.AddReference;
+                default:
+                    throw new ArgumentException($"El comando '{comandoStr}' no es válido.");
+            }
+        }
+       
+
+
 
         private async Task<string> MandarTarea(TaskItem selectedTaskItem)
         {
