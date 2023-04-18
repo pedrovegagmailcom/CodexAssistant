@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:prism="http://prismlibrary.com/"
         prism:ViewModelLocator.AutoWireViewModel="True"
-        Title="{Binding Title}" Height="850" Width="1525" >
+        Title="{Binding Title}" Height="800" Width="1300" >
     <Grid>
         <TabControl>
             <TabItem Header="Principal">

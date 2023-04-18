@@ -25,5 +25,11 @@ namespace CodexAssistant.Modelo
 
         [JsonProperty("arguments")]
         public string Arguments { get; set; }
+
+        [JsonProperty("content")]
+        public string Comentarios { get; set; }
+
+        [JsonProperty("comments")]
+        public string Contenido { get; set; }
     }
 }

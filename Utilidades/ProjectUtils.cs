@@ -9,6 +9,11 @@
         public static List<string> GetEditableFiles(string projectPath)
         {
             List<string> editableFiles = new List<string>();
+            if (!Directory.Exists(projectPath))
+            {
+                return editableFiles;
+            }
+            
 
             // Obtener la extensión de archivo de los archivos editables (puedes cambiarla según tus necesidades)
             string[] editableExtensions = { ".cs", ".xaml" };

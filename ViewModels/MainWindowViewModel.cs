@@ -43,7 +43,7 @@ namespace CodexAssistant.ViewModels
 
         private IOutputHandler outputHandler;
         private IProjectCreator _projectCreator;
-        private string parentDirectory = @"C:\Users\pvega\pruebasNet";
+        private string parentDirectory = @"C:\pruebasNet";
 
         #region Propiedades Vista
         private ObservableCollection<string> _logEntries;
@@ -73,6 +73,8 @@ namespace CodexAssistant.ViewModels
         }
 
         private TaskItem _selectedTaskItem;
+        private string ContextoComun;
+
         public TaskItem SelectedTaskItem
         {
             get { return _selectedTaskItem; }
@@ -136,7 +138,7 @@ namespace CodexAssistant.ViewModels
 
         private async void ButtonTaskRequest()
         {
-            await EjecutarCicloTarea();
+            await EjecutarTarea();
         }
 
         public class TaskListaAux
@@ -164,41 +166,80 @@ namespace CodexAssistant.ViewModels
             Finalizar
         }
 
-        public async Task EjecutarCicloTarea()
+        public async Task EjecutarTarea()
         {
-         
             BuildResult buildResult = new BuildResult((true, "", ""));
             Estado estadoActual = Estado.MandarTarea;
-
-            bool compilacionExitosa = false;
-            Mensaje msg = new Mensaje();
-
-
-            while (estadoActual != Estado.Finalizar)
+            CommandData lastCommandData = new CommandData();
+         
+            try
             {
-                switch (estadoActual)
+                while (estadoActual != Estado.Finalizar)
                 {
-                    case Estado.MandarTarea:
-                        string result = await MandarTarea(SelectedTaskItem);
-                        result = ParserJSon.ExtraerJSONTaskRequest(await MandarTarea(SelectedTaskItem));
-                        var comando = JsonConvert.DeserializeObject<CommandData>(result);
-                        bool res = ExecComando(comando);
-                        if (res) {
-                            MandarContextoProjecto();
-                        }
-                        break;
+                        string resTarea;
+                    switch (estadoActual)
+                    {
+                        case Estado.MandarTarea:
+                            resTarea = await MandarTarea(SelectedTaskItem);
+                            string result = ParserJSon.ExtraerJSONTaskRequest(resTarea);
+                            lastCommandData = JsonConvert.DeserializeObject<CommandData>(result);
+                            bool res = ExecComando(lastCommandData);
+                            if (res) {
+                                SelectedTaskItem.Status = "terminada";
+                                estadoActual = Estado.Finalizar;
+                            }
+                            break;
 
-
+                    }
                 }
             }
+            catch (Exception e)
+            {
 
+                throw;
+            }
             Console.WriteLine("FIN");
         }
 
-        private void MandarContextoProjecto()
+        private async Task<string> MandarTarea(TaskItem selectedTaskItem)
         {
-            var projectfiles = ProjectUtils.GetEditableFiles(parentDirectory + "\\" + AppName);
+            string jsonTarea = JsonConvert.SerializeObject(selectedTaskItem);
+            GenerarContextoTarea();
+            var conversation = openAIAPI.Chat.CreateConversation();
+            conversation.AppendSystemMessage(ContextoComun);
+            conversation.AppendUserInput("TaskRequest:" + jsonTarea);
+            string respuesta = await conversation.GetResponseFromChatbotAsync();
+            return respuesta;
+        }
 
+        //private async void MandarContextoProjecto(CommandData comando)
+        //{
+        //    string jsonTarea = JsonConvert.SerializeObject(SelectedTaskItem);
+        //    var projectfiles = ProjectUtils.GetEditableFiles(parentDirectory + "\\" + AppName);
+        //    var conversation = openAIAPI.Chat.CreateConversation();
+        //    conversation.AppendSystemMessage(_promptTaskRequest);
+        //    conversation.AppendSystemMessage(AppDescription);
+        //    var tareasJson = JsonConvert.SerializeObject(TaskList);
+        //    string contextoTareas = "Estado actual de las tareas :" + tareasJson;
+        //    conversation.AppendSystemMessage(contextoTareas);
+        //    string contextoFicheros = "Ficheros del proyecto :\n" + string.Join("\n", projectfiles);
+        //    conversation.AppendSystemMessage(contextoFicheros);
+        //    conversation.AppendUserInput("TaskRequest:" + jsonTarea);
+        //    string respuesta = await conversation.GetResponseFromChatbotAsync();
+
+        //}
+
+        
+
+        private void  GenerarContextoTarea()
+        {
+            string jsonTarea = JsonConvert.SerializeObject(SelectedTaskItem);
+            var projectfiles = ProjectUtils.GetEditableFiles(parentDirectory + "\\" + AppName);
+            var tareasJson = JsonConvert.SerializeObject(TaskList);
+            ContextoComun = _promptTaskRequest;
+            ContextoComun += "\nOjetivo Global : " + AppDescription;
+            ContextoComun += "\nEstado actual de las tareas :\n" + tareasJson;
+            ContextoComun += "\nFicheros del proyecto :\n" + string.Join("\n", projectfiles);
 
         }
 
@@ -300,16 +341,7 @@ namespace CodexAssistant.ViewModels
 
 
 
-        private async Task<string> MandarTarea(TaskItem selectedTaskItem)
-        {
-            string jsonTarea = JsonConvert.SerializeObject(selectedTaskItem);
-            var conversation = openAIAPI.Chat.CreateConversation();
-            conversation.AppendSystemMessage(_promptTaskRequest);
-            conversation.AppendSystemMessage(AppDescription);
-            conversation.AppendUserInput("TaskRequest:" + jsonTarea);
-            string respuesta = await conversation.GetResponseFromChatbotAsync();
-            return respuesta;
-        }
+       
 
         private void Button3Execute()
         {
