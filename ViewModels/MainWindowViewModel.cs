@@ -251,12 +251,12 @@ namespace CodexAssistant.ViewModels
             {
                 case Comandos.CreateProject:
 
-                    return EjecutarCreateProject(comando.Arguments);
+                    return EjecutarCreateProject(comando);
 
                     break;
                 case Comandos.GetFile:
                     
-                    return EjecutarGetFile();
+                    return EjecutarGetFile(comando);
                     
                     break;
                 case Comandos.UpdateFile:
@@ -285,13 +285,16 @@ namespace CodexAssistant.ViewModels
         }
 
 
-        public bool EjecutarCreateProject(string tipo)
+        public bool EjecutarCreateProject(CommandData comando)
         {
-            return _projectCreator.Create(AppName, parentDirectory, tipo);
+            return _projectCreator.Create(AppName, parentDirectory, comando.Arguments);
         }
 
-        public bool EjecutarGetFile()
+        public bool EjecutarGetFile(CommandData comando)
         {
+            var projectfiles = ProjectUtils.GetEditableFiles(parentDirectory + "\\" + AppName);
+            var fichero = projectfiles.Find(f => f.Contains(comando.Arguments[0]));
+            var contenido = File.ReadAllText(fichero);
             return false;
         }
 
