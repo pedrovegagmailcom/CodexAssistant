@@ -19,6 +19,12 @@ using System.Windows.Documents;
 
 namespace CodexAssistant.ViewModels
 {
+    public class FileTransfer
+    {
+        public string NombreFichero { get; set; }
+        public string Contenido { get; set;}
+    }
+
     public class MainWindowViewModel : BindableBase
     {
         private OpenAIAPI openAIAPI = new OpenAIAPI(Secrets.OpenAIKey);
@@ -183,7 +189,7 @@ namespace CodexAssistant.ViewModels
                             resTarea = await MandarTarea(SelectedTaskItem);
                             string result = ParserJSon.ExtraerJSONTaskRequest(resTarea);
                             lastCommandData = JsonConvert.DeserializeObject<CommandData>(result);
-                            bool res = ExecComando(lastCommandData);
+                            bool res = await ExecComando(lastCommandData);
                             if (res) {
                                 SelectedTaskItem.Status = "terminada";
                                 estadoActual = Estado.Finalizar;
@@ -212,24 +218,7 @@ namespace CodexAssistant.ViewModels
             return respuesta;
         }
 
-        //private async void MandarContextoProjecto(CommandData comando)
-        //{
-        //    string jsonTarea = JsonConvert.SerializeObject(SelectedTaskItem);
-        //    var projectfiles = ProjectUtils.GetEditableFiles(parentDirectory + "\\" + AppName);
-        //    var conversation = openAIAPI.Chat.CreateConversation();
-        //    conversation.AppendSystemMessage(_promptTaskRequest);
-        //    conversation.AppendSystemMessage(AppDescription);
-        //    var tareasJson = JsonConvert.SerializeObject(TaskList);
-        //    string contextoTareas = "Estado actual de las tareas :" + tareasJson;
-        //    conversation.AppendSystemMessage(contextoTareas);
-        //    string contextoFicheros = "Ficheros del proyecto :\n" + string.Join("\n", projectfiles);
-        //    conversation.AppendSystemMessage(contextoFicheros);
-        //    conversation.AppendUserInput("TaskRequest:" + jsonTarea);
-        //    string respuesta = await conversation.GetResponseFromChatbotAsync();
-
-        //}
-
-        
+               
 
         private void  GenerarContextoTarea()
         {
@@ -243,7 +232,7 @@ namespace CodexAssistant.ViewModels
 
         }
 
-        private bool ExecComando(CommandData comando)
+        private async Task<bool> ExecComando(CommandData comando)
         {
             Comandos command = ObtenerComando(comando);
 
@@ -256,7 +245,7 @@ namespace CodexAssistant.ViewModels
                     break;
                 case Comandos.GetFile:
                     
-                    return EjecutarGetFile(comando);
+                    return await EjecutarGetFile(comando);
                     
                     break;
                 case Comandos.UpdateFile:
@@ -290,11 +279,26 @@ namespace CodexAssistant.ViewModels
             return _projectCreator.Create(AppName, parentDirectory, comando.Arguments);
         }
 
-        public bool EjecutarGetFile(CommandData comando)
+
+
+        public async Task<bool> EjecutarGetFile(CommandData comando)
         {
             var projectfiles = ProjectUtils.GetEditableFiles(parentDirectory + "\\" + AppName);
             var fichero = projectfiles.Find(f => f.Contains(comando.Arguments[0]));
             var contenido = File.ReadAllText(fichero);
+            var fileTransfer = new FileTransfer()
+            {
+                NombreFichero = fichero,
+                Contenido = contenido,
+            };
+            GenerarContextoTarea();
+            var fileTransferJson = JsonConvert.SerializeObject(fileTransfer);
+            ContextoComun += "\n" + fileTransferJson + "\n";
+           
+            var conversation = openAIAPI.Chat.CreateConversation();
+            conversation.AppendSystemMessage(ContextoComun);
+            conversation.AppendUserInput(SelectedTaskItem.Comments);
+            string respuesta = await conversation.GetResponseFromChatbotAsync();
             return false;
         }
 
