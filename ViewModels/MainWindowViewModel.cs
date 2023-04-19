@@ -182,7 +182,7 @@ namespace CodexAssistant.ViewModels
             {
                 while (estadoActual != Estado.Finalizar)
                 {
-                        string resTarea;
+                    string resTarea;
                     switch (estadoActual)
                     {
                         case Estado.MandarTarea:
@@ -209,6 +209,7 @@ namespace CodexAssistant.ViewModels
 
         private async Task<string> MandarTarea(TaskItem selectedTaskItem)
         {
+            selectedTaskItem.Status = "encurso";
             string jsonTarea = JsonConvert.SerializeObject(selectedTaskItem);
             GenerarContextoTarea();
             var conversation = openAIAPI.Chat.CreateConversation();
@@ -228,6 +229,7 @@ namespace CodexAssistant.ViewModels
             ContextoComun = _promptTaskRequest;
             ContextoComun += "\nOjetivo Global : " + AppDescription;
             ContextoComun += "\nEstado actual de las tareas :\n" + tareasJson;
+            ContextoComun += "\nTarea En Curso :\n" + jsonTarea + "\n";
             ContextoComun += "\nFicheros del proyecto :\n" + string.Join("\n", projectfiles);
 
         }
@@ -284,7 +286,7 @@ namespace CodexAssistant.ViewModels
         public async Task<bool> EjecutarGetFile(CommandData comando)
         {
             var projectfiles = ProjectUtils.GetEditableFiles(parentDirectory + "\\" + AppName);
-            var fichero = projectfiles.Find(f => f.Contains(comando.Arguments[0]));
+            var fichero = projectfiles.Find(f => f.Contains(comando.Arguments));
             var contenido = File.ReadAllText(fichero);
             var fileTransfer = new FileTransfer()
             {

@@ -26,10 +26,10 @@ namespace CodexAssistant.Modelo
         [JsonProperty("arguments")]
         public string Arguments { get; set; }
 
-        [JsonProperty("content")]
+        [JsonProperty("comments")]
         public string Comentarios { get; set; }
 
-        [JsonProperty("comments")]
+        [JsonProperty("content")]
         public string Contenido { get; set; }
     }
 }
