@@ -20,16 +20,10 @@ namespace CodexAssistant.Modelo
 
     public class CommandData
     {
-        [JsonProperty("command")]
-        public string Command { get; set; }
-
-        [JsonProperty("arguments")]
-        public string Arguments { get; set; }
-
-        [JsonProperty("comments")]
-        public string Comentarios { get; set; }
-
-        [JsonProperty("content")]
-        public string Contenido { get; set; }
+       
+        public string command { get; set; }
+        public string arguments { get; set; }
+        public string comments { get; set; }
+        public string content { get; set; }
     }
 }

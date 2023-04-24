@@ -46,7 +46,7 @@ namespace CodexAssistant.ViewModels
         private IGeneradorCodigo comChatGPT;
         private string _promptAppRequest;
         private string _promptTaskRequest;
-
+        private string _promptTaskRequest1;
         private IOutputHandler outputHandler;
         private IProjectCreator _projectCreator;
         private string parentDirectory = @"C:\pruebasNet";
@@ -132,7 +132,8 @@ namespace CodexAssistant.ViewModels
             string carpetaSalidaProyecto = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             _promptAppRequest = File.ReadAllText(carpetaSalidaProyecto + "\\Prompts\\Prompt AppRequest.txt");
             _promptTaskRequest = File.ReadAllText(carpetaSalidaProyecto + "\\Prompts\\Prompt TaskRequest.txt");
-        
+            _promptTaskRequest1 = File.ReadAllText(carpetaSalidaProyecto + "\\Prompts\\Prompt TaskRequest 1.txt");
+
         }
 
         
@@ -188,6 +189,7 @@ namespace CodexAssistant.ViewModels
                         case Estado.MandarTarea:
                             resTarea = await MandarTarea(SelectedTaskItem);
                             string result = ParserJSon.ExtraerJSONTaskRequest(resTarea);
+                            var resObject = JsonConvert.DeserializeObject(result);
                             lastCommandData = JsonConvert.DeserializeObject<CommandData>(result);
                             bool res = await ExecComando(lastCommandData);
                             if (res) {
@@ -211,7 +213,7 @@ namespace CodexAssistant.ViewModels
         {
             selectedTaskItem.Status = "encurso";
             string jsonTarea = JsonConvert.SerializeObject(selectedTaskItem);
-            GenerarContextoTarea();
+            GenerarContextoTarea(_promptTaskRequest);
             var conversation = openAIAPI.Chat.CreateConversation();
             conversation.AppendSystemMessage(ContextoComun);
             conversation.AppendUserInput("TaskRequest:" + jsonTarea);
@@ -221,7 +223,7 @@ namespace CodexAssistant.ViewModels
 
                
 
-        private void  GenerarContextoTarea()
+        private void  GenerarContextoTarea(string _promptTaskRequest)
         {
             string jsonTarea = JsonConvert.SerializeObject(SelectedTaskItem);
             var projectfiles = ProjectUtils.GetEditableFiles(parentDirectory + "\\" + AppName);
@@ -278,7 +280,7 @@ namespace CodexAssistant.ViewModels
 
         public bool EjecutarCreateProject(CommandData comando)
         {
-            return _projectCreator.Create(AppName, parentDirectory, comando.Arguments);
+            return _projectCreator.Create(AppName, parentDirectory, comando.arguments);
         }
 
 
@@ -286,21 +288,23 @@ namespace CodexAssistant.ViewModels
         public async Task<bool> EjecutarGetFile(CommandData comando)
         {
             var projectfiles = ProjectUtils.GetEditableFiles(parentDirectory + "\\" + AppName);
-            var fichero = projectfiles.Find(f => f.Contains(comando.Arguments));
+            var fichero = projectfiles.Find(f => f.Contains(comando.arguments));
             var contenido = File.ReadAllText(fichero);
             var fileTransfer = new FileTransfer()
             {
                 NombreFichero = fichero,
                 Contenido = contenido,
             };
-            GenerarContextoTarea();
+            GenerarContextoTarea(_promptTaskRequest1);
             var fileTransferJson = JsonConvert.SerializeObject(fileTransfer);
             ContextoComun += "\n" + fileTransferJson + "\n";
            
             var conversation = openAIAPI.Chat.CreateConversation();
             conversation.AppendSystemMessage(ContextoComun);
-            conversation.AppendUserInput(SelectedTaskItem.Comments);
+            conversation.AppendUserInput(SelectedTaskItem.Comments + "\n Contesta solo en JSon para que Hub te entienda");
             string respuesta = await conversation.GetResponseFromChatbotAsync();
+            var resCommand = JsonConvert.DeserializeObject<CommandData>(respuesta);
+            File.WriteAllText(fichero, resCommand.content);
             return false;
         }
 
@@ -326,7 +330,7 @@ namespace CodexAssistant.ViewModels
 
         public static Comandos ObtenerComando(CommandData commandData)
         {
-            string comandoStr = commandData.Command.ToLower();
+            string comandoStr = commandData.command.ToLower();
 
             switch (comandoStr)
             {

@@ -11,19 +11,25 @@ Los comandos disponibles son los siguientes:
 4. GetFile: Devuelve el contenido del fichero de código del proyecto solicitado (.cs, .axml).
 	4.1. "arg1" = nombre del fichero completo con su path.
 	4.2. "comments" = explica con mucho detalle cada cambio a realizar.  
-
-5. AddFile: Añade un fichero que no existe al proyecto.
-	5.1. "arg1" = nombre del fichero nuevo completo con su path.
+5 UpdateFile: Modifica el contenido de un fichero. Antes hay que solicitarlo con GetFile.
+	5.0. Solocitar a Hub el fichero con el comando "GetFile".
+	5.1. "arg1" = nombre del fichero completo con su path
+	5.2. "content" = codigo completo del fichero modificado
+	5.3. "comments" = explica con mucho detalle cada cambio realizado. 
+6. AddFile: Añade un fichero que no existe al proyecto.
+	6.1. "arg1" = nombre del fichero nuevo completo con su path.
 
 === Fin Lista Comandos ===
 
 === Instrucciones ===
 1. cuando recibas TaskExecute devolveras un comando y proporcionaras información adicional si es necesario.
-2. Antes de modificar un fichero primero tienes que solicitar a Hub el fichero con el comando "GetFile".
+2. Antes de modificar un fichero con "UpdateFile" primero tienes que solicitar a Hub el fichero con el comando "GetFile".
+3. Primero GetFile y despues UpdateFile.
 
 Como modificar un fichero : 
 1. primero usar el comando "GetFile" para obtener el contenido del fichero a modificar.
 2. Hub te devolvera el fichero.
+3. modificas el fichero y lo devolveras con el comando "UpdateFile".
 
 El formato para solicitar un comando es el siguiente:
 
